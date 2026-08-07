@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "engine-api-python"
+version = "1.2.0"
+description = "SDK Python oficial da Engine API — emissão fiscal (NFe, NFCe, NFSe) via SEFAZ, com tipos completos e tratamento de erro previsível"
+readme = "README.md"
+license = {text = "MIT"}
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+authors = [
+    {name = "3X Tecnologia", email = "contato@3xtec.com.br"},
+]
+keywords = ["nfe", "nfce", "nfse", "fiscal", "sefaz", "nota-fiscal", "danfe"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-httpx>=0.30",
+    "ruff>=0.5",
+]
+
+[project.urls]
+Homepage = "https://engineapi.com.br"
+Documentation = "https://docs.engineapi.com.br"
+Repository = "https://github.com/3X-GIT/engineapi-sdk-python"
+Issues = "https://github.com/3X-GIT/engineapi-sdk-python/issues"
+Changelog = "https://docs.engineapi.com.br/changelog"
+
+# O nome do projeto (`engine-api-python`) não bate com o diretório do pacote
+# (`engineapi/`), e a heurística padrão do hatchling resolve o pacote pelo nome
+# do projeto. Sem esta declaração explícita o build falha com "Unable to
+# determine which files to ship inside the wheel".
+[tool.hatch.build.targets.wheel]
+packages = ["engineapi"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,9 @@
+# Artefatos de build/teste locais (gerados por `pip install -e .`/`pytest`).
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+.venv/
+venv/
