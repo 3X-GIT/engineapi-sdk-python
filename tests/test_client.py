@@ -120,8 +120,34 @@ class TestNfeClient:
 
     def test_emitir(self):
         self.mock_http.post.return_value = {"id": "nfe-1", "status": "AUTHORIZED"}
-        result = self.client.nfe.emitir({"emitente": {"issuerId": "123"}})
-        self.mock_http.post.assert_called_once_with("/nfe", json={"emitente": {"issuerId": "123"}})
+        payload = {
+            "issuerId": "123",
+            "destinatario": {
+                "cnpjCpf": "99888777000100",
+                "nome": "Cliente Exemplo SA",
+                "endereco": {
+                    "logradouro": "Av. Goiás",
+                    "numero": "500",
+                    "bairro": "Centro",
+                    "codigoMunicipio": "5208707",
+                    "municipio": "Goiânia",
+                    "uf": "GO",
+                    "cep": "74063010",
+                },
+            },
+            "items": [{
+                "codigo": "PROD001",
+                "descricao": "Produto teste",
+                "ncm": "84713012",
+                "cfop": "5102",
+                "unidade": "UN",
+                "quantidade": 1,
+                "valorUnitario": 100,
+            }],
+            "pagamentos": [{"forma": "01", "valor": 100}],
+        }
+        result = self.client.nfe.emitir(payload)
+        self.mock_http.post.assert_called_once_with("/nfe", json=payload)
         assert result["status"] == "AUTHORIZED"
 
     def test_listar(self):

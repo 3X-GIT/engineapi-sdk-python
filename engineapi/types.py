@@ -1,87 +1,239 @@
-"""Engine API — Modelos Pydantic (type hints)."""
+"""Modelos Pydantic do contrato público da Engine API.
+
+Os nomes dos campos reproduzem literalmente o OpenAPI publicado.  Os modelos
+rejeitam campos desconhecidos, como os DTOs Zod da API.
+"""
 
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Literal, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+
+class EngineApiModel(BaseModel):
+    """Base para os objetos estritos aceitos pelos DTOs de emissão."""
+
+    model_config = ConfigDict(extra="forbid")
 
 
 # ========================================
 # Auth
 # ========================================
 
-class LoginParams(BaseModel):
+
+class LoginParams(EngineApiModel):
     email: str
     password: str
 
 
-class LoginResponse(BaseModel):
+class LoginResponse(EngineApiModel):
     access_token: str
-    partner: dict[str, Any]
+    partnerId: str
 
 
 # ========================================
-# Company / Issuer
+# Companies / issuers
 # ========================================
 
-class Endereco(BaseModel):
-    logradouro: str
-    numero: str
-    complemento: Optional[str] = None
-    bairro: str
-    cidade: str
-    uf: str
-    cep: str
-    codigoMunicipio: Optional[str] = None
 
+class CreateCompanyParams(EngineApiModel):
+    """Corpo de ``POST /v1/companies`` (endereço em campos planos)."""
 
-class CreateCompanyParams(BaseModel):
     cnpj: str
-    razaoSocial: str
-    nomeFantasia: Optional[str] = None
-    inscricaoEstadual: Optional[str] = None
-    inscricaoMunicipal: Optional[str] = None
-    regime: str  # SIMPLES | LUCRO_PRESUMIDO | LUCRO_REAL
-    endereco: Endereco
+    name: str
+    tradeName: Optional[str] = None
+    ie: Optional[str] = None
+    im: Optional[str] = None
+    crt: Optional[int] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    cep: Optional[str] = None
+    address: Optional[str] = None
+    number: Optional[str] = None
+    complement: Optional[str] = None
+    neighborhood: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    ibgeCode: Optional[str] = None
+    csc: Optional[str] = None
+    cscId: Optional[str] = None
+    cnae: Optional[str] = None
+    segmento: Optional[str] = None
+    mei: Optional[bool] = None
+    fiscalBrainEnabled: Optional[bool] = None
+    cTribNacPadrao: Optional[str] = None
+    servicoPadraoLc116: Optional[str] = None
+    pTotTribSNPadrao: Optional[float] = None
 
 
-class Company(BaseModel):
+class Company(EngineApiModel):
+    """Resposta de empresa sem os segredos ``csc`` e ``certPassword``."""
+
     id: str
     cnpj: str
-    razaoSocial: str
-    nomeFantasia: Optional[str] = None
-    inscricaoEstadual: Optional[str] = None
-    regime: str
+    name: str
+    crt: int
+    certExpiryUnknown: bool
+    sandbox: bool
+    ambienteFiscal: int
+    fiscalBrainEnabled: bool
+    mei: bool
     createdAt: str
+    updatedAt: str
+    tradeName: Optional[str] = None
+    ie: Optional[str] = None
+    im: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    cep: Optional[str] = None
+    address: Optional[str] = None
+    number: Optional[str] = None
+    complement: Optional[str] = None
+    neighborhood: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    ibgeCode: Optional[str] = None
+    certFilename: Optional[str] = None
+    certExpiry: Optional[str] = None
+    cscId: Optional[str] = None
+    cnae: Optional[str] = None
+    segmento: Optional[str] = None
+    servicoPadraoLc116: Optional[str] = None
+    issMunicipio: Optional[str] = None
+    cTribNacPadrao: Optional[str] = None
+    pTotTribSNPadrao: Optional[float] = None
+    partnerId: Optional[str] = None
 
 
 # ========================================
-# NFe
+# Shared NFe / NFCe shapes
 # ========================================
 
-class IcmsItem(BaseModel):
-    origem: str
-    # "02" e "61" sao a tributacao MONOFASICA de combustiveis (NT 2023.001):
-    # valem nos dois regimes, inclusive Simples Nacional, e exigem o grupo
-    # `combustivel` no mesmo item. Na NFC-e o leiaute so aceita o "61".
-    cst: str
+
+class Endereco(EngineApiModel):
+    """Endereço do destinatário da NF-e."""
+
+    logradouro: str
+    numero: str
+    bairro: str
+    codigoMunicipio: str
+    municipio: str
+    uf: str
+    cep: str
+    complemento: Optional[str] = None
+
+
+class Destinatario(EngineApiModel):
+    cnpjCpf: str
+    nome: str
+    endereco: Endereco
+    ie: Optional[str] = None
+    indicadorIE: Optional[int] = None
+    email: Optional[str] = None
+
+
+class IcmsItem(EngineApiModel):
+    origem: Optional[int] = None
+    cst: Optional[str] = None
+    csosn: Optional[str] = None
     aliquota: Optional[float] = None
     baseCalculo: Optional[float] = None
-    # Monofasico CST 02 (tributacao propria). A base e uma QUANTIDADE (litro,
-    # quilograma) e a aliquota e AD REM: reais por unidade, nao percentual.
+    valor: Optional[float] = None
+    baseCalculoST: Optional[float] = None
+    aliquotaST: Optional[float] = None
+    valorST: Optional[float] = None
+    modBC: Optional[str] = None
+    pRedBC: Optional[float] = None
+    vBC: Optional[float] = None
+    pICMS: Optional[float] = None
+    vICMS: Optional[float] = None
+    vBCFCP: Optional[float] = None
+    pFCP: Optional[float] = None
+    vFCP: Optional[float] = None
+    modBCST: Optional[str] = None
+    pMVAST: Optional[float] = None
+    pRedBCST: Optional[float] = None
+    vBCST: Optional[float] = None
+    pICMSST: Optional[float] = None
+    vICMSST: Optional[float] = None
+    vBCFCPST: Optional[float] = None
+    pFCPST: Optional[float] = None
+    vFCPST: Optional[float] = None
+    vBCSTRet: Optional[float] = None
+    pST: Optional[float] = None
+    vICMSSubstituto: Optional[float] = None
+    vICMSSTRet: Optional[float] = None
+    vBCFCPSTRet: Optional[float] = None
+    pFCPSTRet: Optional[float] = None
+    vFCPSTRet: Optional[float] = None
+    pRedBCEfet: Optional[float] = None
+    vBCEfet: Optional[float] = None
+    pICMSEfet: Optional[float] = None
+    vICMSEfet: Optional[float] = None
     qBCMono: Optional[float] = None
     adRemICMS: Optional[float] = None
     vICMSMono: Optional[float] = None
-    # Monofasico CST 61 (cobrado anteriormente: revenda de posto/GLP).
     qBCMonoRet: Optional[float] = None
     adRemICMSRet: Optional[float] = None
     vICMSMonoRet: Optional[float] = None
 
 
-class CombustivelItem(BaseModel):
-    """Grupo comb/LA — obrigatorio junto com a tributacao monofasica."""
+class IcmsNfceItem(EngineApiModel):
+    origem: Optional[int] = None
+    csosn: Optional[str] = None
+    cst: Optional[str] = None
+    aliquota: Optional[float] = None
+    baseCalculo: Optional[float] = None
+    valor: Optional[float] = None
+    baseCalculoST: Optional[float] = None
+    aliquotaST: Optional[float] = None
+    valorST: Optional[float] = None
+    qBCMono: Optional[float] = None
+    adRemICMS: Optional[float] = None
+    vICMSMono: Optional[float] = None
+    qBCMonoRet: Optional[float] = None
+    adRemICMSRet: Optional[float] = None
+    vICMSMonoRet: Optional[float] = None
 
+
+class PisItem(EngineApiModel):
+    cst: Optional[str] = None
+    baseCalculo: Optional[float] = None
+    aliquota: Optional[float] = None
+    valor: Optional[float] = None
+
+
+class CofinsItem(PisItem):
+    pass
+
+
+class IpiItem(PisItem):
+    cEnq: Optional[str] = None
+
+
+class IbsCbsComponente(EngineApiModel):
+    p: float
+    pNominal: Optional[float] = None
+    pRedAliq: Optional[float] = None
+    v: Optional[float] = None
+
+
+class IbsCbsItem(EngineApiModel):
+    cst: Optional[str] = None
+    cClassTrib: Optional[str] = None
+    vBC: Optional[float] = None
+    ibsUf: IbsCbsComponente
+    ibsMun: IbsCbsComponente
+    vIbs: Optional[float] = None
+    cbs: IbsCbsComponente
+
+
+class IbsCbsClasse(EngineApiModel):
+    cClassTrib: str
+
+
+class CombustivelItem(EngineApiModel):
     cProdANP: str
     descANP: str
     ufConsumo: str
@@ -91,207 +243,300 @@ class CombustivelItem(BaseModel):
     vPart: Optional[float] = None
 
 
-class NfeItem(BaseModel):
+class NfeItem(EngineApiModel):
+    codigo: str
     descricao: str
     ncm: str
     cfop: str
     unidade: str
     quantidade: float
     valorUnitario: float
-    valorTotal: float
-    desconto: Optional[float] = None
-    # cBenef: codigo do beneficio fiscal concedido pela UF, 8 ou 10 caracteres
-    # alfanumericos (ex.: "GO810003") ou o literal "SEM CBENEF". O codigo vem
-    # da tabela de beneficios da propria UF e e transcrito para o documento sem
-    # alteracao. Algumas UFs exigem o campo quando o CST tem beneficio (ex.: GO
-    # rejeita com cStat 930 o CST 61 monofasico de combustivel sem cBenef).
-    # Reusado tambem pela NFC-e (CreateNfceParams.itens usa este mesmo modelo).
+    ean: Optional[str] = None
+    cest: Optional[str] = None
     cBenef: Optional[str] = None
-    # Frete/seguro/outras despesas do item (vFrete/vSeg/vOutro do leiaute):
-    # somam no vNF e aumentam a base do ICMS/IBS-CBS — o inverso do desconto.
+    valorTotal: Optional[float] = None
+    desconto: Optional[float] = None
     valorFrete: Optional[float] = None
     valorSeguro: Optional[float] = None
     outrasDespesas: Optional[float] = None
-    # indTot do leiaute: 1 (default) compõe o vProd/vNF do total; 0 não compõe.
-    indTot: Optional[int] = None
+    indTot: Optional[Literal[0, 1]] = None
     icms: Optional[IcmsItem] = None
+    pis: Optional[PisItem] = None
+    cofins: Optional[CofinsItem] = None
+    ipi: Optional[IpiItem] = None
+    ibsCbs: Optional[Union[IbsCbsItem, IbsCbsClasse]] = None
     combustivel: Optional[CombustivelItem] = None
 
 
-class Destinatario(BaseModel):
-    cnpjCpf: str
-    razaoSocial: str
-    inscricaoEstadual: Optional[str] = None
-    endereco: Endereco
+class NfceItem(EngineApiModel):
+    codigo: str
+    descricao: str
+    ncm: str
+    cfop: str
+    unidade: str
+    quantidade: float
+    valorUnitario: float
+    ean: Optional[str] = None
+    cest: Optional[str] = None
+    cBenef: Optional[str] = None
+    valorTotal: Optional[float] = None
+    desconto: Optional[float] = None
+    valorFrete: Optional[float] = None
+    valorSeguro: Optional[float] = None
+    outrasDespesas: Optional[float] = None
+    indTot: Optional[Literal[1]] = None
+    icms: Optional[IcmsNfceItem] = None
+    pis: Optional[PisItem] = None
+    cofins: Optional[CofinsItem] = None
+    ipi: Optional[IpiItem] = None
+    ibsCbs: Optional[Union[IbsCbsItem, IbsCbsClasse]] = None
+    combustivel: Optional[CombustivelItem] = None
 
 
-class Emitente(BaseModel):
-    issuerId: str
+class Pagamento(EngineApiModel):
+    forma: str
+    valor: float
 
 
-class CreateNfeParams(BaseModel):
-    emitente: Emitente
+class Fatura(EngineApiModel):
+    numero: str
+    valorOriginal: float
+    valorDesconto: float
+    valorLiquido: float
+
+
+class Duplicata(EngineApiModel):
+    vencimento: str
+    valor: float
+    numero: Optional[str] = None
+
+
+class Cobranca(EngineApiModel):
+    fatura: Optional[Fatura] = None
+    duplicatas: Optional[list[Duplicata]] = None
+
+
+# ========================================
+# NFe (modelo 55)
+# ========================================
+
+
+class Referenciada(EngineApiModel):
+    chaveAcesso: str
+
+
+class Transportadora(EngineApiModel):
+    cnpjCpf: Optional[str] = None
+    nome: Optional[str] = None
+    ie: Optional[str] = None
+    endereco: Optional[str] = None
+    municipio: Optional[str] = None
+    uf: Optional[str] = None
+
+
+class Volume(EngineApiModel):
+    quantidade: Optional[int] = None
+    especie: Optional[str] = None
+    pesoBruto: Optional[float] = None
+    pesoLiquido: Optional[float] = None
+
+
+class Transporte(EngineApiModel):
+    modFrete: Literal[0, 1, 2, 3, 4, 9]
+    transportadora: Optional[Transportadora] = None
+    volumes: Optional[list[Volume]] = None
+
+
+class CreateNfeParams(EngineApiModel):
     destinatario: Destinatario
-    itens: list[NfeItem]
+    items: list[NfeItem]
+    pagamentos: list[Pagamento]
+    issuerId: Optional[str] = None
     naturezaOperacao: Optional[str] = None
-    informacoesAdicionais: Optional[str] = None
-
-
-class NfeResponse(BaseModel):
-    id: str
-    accessKey: Optional[str] = None
-    status: str
-    protocolo: Optional[str] = None
-    numero: Optional[int] = None
     serie: Optional[int] = None
-    xml: Optional[str] = None
+    numero: Optional[int] = None
+    tpNF: Optional[int] = None
+    idDest: Optional[int] = None
+    indFinal: Optional[int] = None
+    indPres: Optional[int] = None
+    finNFe: Optional[int] = None
+    referenciadas: Optional[list[Referenciada]] = None
+    transporte: Optional[Transporte] = None
+    troco: Optional[float] = None
+    cobranca: Optional[Cobranca] = None
+    informacoesComplementares: Optional[str] = None
+    informacoesFisco: Optional[str] = None
+    resolverTributacao: Optional[bool] = None
+
+
+class NfeDownloads(EngineApiModel):
+    xml: str
+    pdf: str
+
+
+class NfeResponse(EngineApiModel):
+    """Resposta de emissão de ``POST /v1/nfe`` e da fila."""
+
+    id: str
+    status: str
+    number: int
+    series: int
+    model: str
+    amount: str
     createdAt: str
+    updatedAt: str
+    accessKey: Optional[str] = None
+    protocol: Optional[str] = None
+    destCNPJ: Optional[str] = None
+    destName: Optional[str] = None
+    downloads: Optional[NfeDownloads] = None
 
 
-class CancelNfeParams(BaseModel):
+class CancelNfeParams(EngineApiModel):
     justificativa: str
 
 
-class CartaCorrecaoParams(BaseModel):
+class CartaCorrecaoParams(EngineApiModel):
     correcao: str
 
 
 # ========================================
-# NFCe
+# NFCe (modelo 65)
 # ========================================
 
-class PagamentoNfce(BaseModel):
-    tipo: str
-    valor: float
 
-
-class CreateNfceParams(BaseModel):
-    issuerId: str
-    itens: list[NfeItem]
-    pagamento: PagamentoNfce
-    cpfConsumidor: Optional[str] = None
-
-
-# ========================================
-# MDFe
-# Modelos de contrato apenas. Este SDK não expõe cliente de MDFe: a
-# superfície pública cobre NFe, NFCe e NFSe.
-# ========================================
-
-class VeiculoMdfe(BaseModel):
-    placa: str
-    renavam: Optional[str] = None
-    tara: int
-    capacidadeKg: int
-
-
-class MotoristaMdfe(BaseModel):
-    nome: str
-    cpf: str
-
-
-class DocumentosMdfe(BaseModel):
-    chaveNfe: Optional[list[str]] = None
-    chaveCte: Optional[list[str]] = None
-
-
-class CreateMdfeParams(BaseModel):
-    issuerId: str
-    ufCarregamento: str
-    ufDescarregamento: str
-    modalidade: str  # RODOVIARIO | AEREO | AQUAVIARIO | FERROVIARIO
-    veiculo: VeiculoMdfe
-    motorista: MotoristaMdfe
-    documentos: DocumentosMdfe
-    valorCarga: float
-    pesoBruto: float
+class CreateNfceParams(EngineApiModel):
+    items: list[NfceItem]
+    pagamentos: list[Pagamento]
+    issuerId: Optional[str] = None
+    serie: Optional[float] = None
+    numero: Optional[float] = None
+    destCPF: Optional[str] = None
+    destNome: Optional[str] = None
+    indPres: Optional[Literal[1, 2, 3, 4, 5, 9]] = None
+    troco: Optional[float] = None
+    cobranca: Optional[Cobranca] = None
+    informacoesComplementares: Optional[str] = None
+    resolverTributacao: Optional[bool] = None
 
 
 # ========================================
 # NFSe
 # ========================================
 
-class TomadorNfse(BaseModel):
+
+class EnderecoNfse(EngineApiModel):
+    logradouro: str
+    numero: str
+    bairro: str
+    codigoMunicipio: str
+    uf: str
+    cep: str
+    complemento: Optional[str] = None
+
+
+class TomadorNfse(EngineApiModel):
     cnpjCpf: str
     razaoSocial: str
-    endereco: Optional[Endereco] = None
+    endereco: EnderecoNfse
+    email: Optional[str] = None
+    telefone: Optional[str] = None
+    inscricaoMunicipal: Optional[str] = None
 
 
-class ServicoNfse(BaseModel):
-    # Nomes do contrato real (`POST /v1/nfse`): `discriminacao`,
-    # `itemListaServico` e `codigoMunicipio`. O contrato de emissão é ESTRITO
-    # desde a v2 — campo com outro nome recusa com 400 apontando o certo.
+class ServicoNfse(EngineApiModel):
     codigoMunicipio: str
-    itemListaServico: Optional[str] = None
     discriminacao: str
     valorServicos: float
+    itemListaServico: Optional[str] = None
+    codigoCnae: Optional[str] = None
+    codigoTributacaoMunicipio: Optional[str] = None
+    codigoNBS: Optional[str] = None
     aliquotaIss: Optional[float] = None
     valorDeducoes: Optional[float] = None
     descontoIncondicionado: Optional[float] = None
     descontoCondicionado: Optional[float] = None
 
 
-class RetencoesNfse(BaseModel):
-    """Retenções na fonte, com efeito real no documento.
+class RpsNfse(EngineApiModel):
+    numero: int
+    serie: Optional[str] = None
+    tipo: Optional[int] = None
 
-    Informe o valor RETIDO em reais; a engineAPI escolhe o campo do leiaute
-    da DPS e confere coerência, sem calcular alíquota nenhuma.
 
-    - issRetidoPor: "tomador" (tpRetISSQN=2) ou "intermediario" (3). O leiaute
-      não tem campo para o VALOR do ISS retido — o sistema nacional o calcula
-      a partir deste indicador.
-    - irrf/csll/inss: vão para vRetIRRF / vRetCSLL / vRetCP.
-    - pis/cofins/outrasRetencoes: SEM campo de valor no leiaute (vPis/vCofins
-      da DPS são debito de apuracao propria, nao retencao, e ficam fora do
-      total de retencoes). Valor != 0 recusa com 422
-      RETENCAO_SEM_CAMPO_NO_LEIAUTE: declare a retencao de PIS/COFINS pelo
-      indicador `dpsNacional.tpRetPisCofins`.
-    """
-
-    issRetidoPor: Optional[str] = None  # "tomador" | "intermediario"
+class RetencoesNfse(EngineApiModel):
+    issRetidoPor: Optional[Literal["tomador", "intermediario"]] = None
     irrf: Optional[float] = None
     csll: Optional[float] = None
+    inss: Optional[float] = None
     cofins: Optional[float] = None
     pis: Optional[float] = None
-    inss: Optional[float] = None
     outrasRetencoes: Optional[float] = None
 
 
-class DpsNacionalNfse(BaseModel):
-    """Bloco do Padrão Nacional (passthrough — a engineAPI só transcreve)."""
-
-    opSimpNac: Union[str, int]  # 1=Não Optante, 2=MEI, 3=ME/EPP
+class DpsNacionalNfse(EngineApiModel):
+    opSimpNac: Union[str, int]
     cTribNac: str
     tribISSQN: Union[str, int]
     regApTribSN: Optional[Union[str, int]] = None
     regEspTrib: Optional[Union[str, int]] = None
     cTribMun: Optional[str] = None
-    # 1=não retido, 2=retido pelo tomador, 3=retido pelo intermediário.
     tpRetISSQN: Optional[Union[str, int]] = None
     cstPisCofins: Optional[str] = None
-    # 0 a 9: e por aqui que a retencao de PIS/COFINS se declara (o leiaute
-    # nao tem campo para o valor retido deles). Passthrough puro; exige
-    # cstPisCofins.
     tpRetPisCofins: Optional[Union[str, int]] = None
     pTotTribSN: Optional[float] = None
 
 
-class CreateNfseParams(BaseModel):
+class IbsCbsDiferimentoNfse(EngineApiModel):
+    pDifUF: float
+    pDifMun: float
+    pDifCBS: float
+
+
+class IbsCbsTributacaoRegularNfse(EngineApiModel):
+    cstReg: str
+    cClassTribReg: str
+
+
+class IbsCbsNfse(EngineApiModel):
+    cIndOp: str
+    cst: str
+    cClassTrib: str
+    finNFSe: Optional[Literal["0"]] = None
+    indFinal: Optional[Literal["0", "1"]] = None
+    tpOper: Optional[Literal["1", "2", "3", "4", "5"]] = None
+    tpEnteGov: Optional[Literal["1", "2", "3", "4"]] = None
+    indDest: Optional[Literal["0", "1"]] = None
+    cCredPres: Optional[str] = None
+    gTribRegular: Optional[IbsCbsTributacaoRegularNfse] = None
+    gDif: Optional[IbsCbsDiferimentoNfse] = None
+
+
+class CreateNfseParams(EngineApiModel):
     issuerId: str
     tomador: TomadorNfse
     servico: ServicoNfse
+    rps: Optional[RpsNfse] = None
+    serie: Optional[Union[str, int]] = None
     dpsNacional: Optional[DpsNacionalNfse] = None
-    retencoes: Optional[RetencoesNfse] = None
+    ibsCbs: Optional[IbsCbsNfse] = None
+    naturezaOperacao: Optional[int] = None
+    regimeTributacao: Optional[int] = None
+    optanteSimples: Optional[bool] = None
+    exigibilidadeISS: Optional[int] = None
     competencia: Optional[str] = None
+    retencoes: Optional[RetencoesNfse] = None
+    informacoesComplementares: Optional[str] = None
     resolverTributacao: Optional[bool] = None
 
 
 # ========================================
-# Pagination
+# Query parameters
 # ========================================
 
-class PaginationParams(BaseModel):
+
+class PaginationParams(EngineApiModel):
     page: Optional[int] = None
     limit: Optional[int] = None
     sortBy: Optional[str] = None
-    sortOrder: Optional[str] = None  # asc | desc
+    sortOrder: Optional[Literal["asc", "desc"]] = None
