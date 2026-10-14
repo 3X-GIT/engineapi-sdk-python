@@ -2,6 +2,10 @@
 
 Todas as mudanças relevantes deste SDK. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o versionamento é [SemVer](https://semver.org/lang/pt-BR/).
 
+## Não lançado
+
+- CI executa testes e build do pacote em todo PR e push na `main`, com Python 3.9 e 3.15.
+
 ## 1.2.0
 
 Primeira versão distribuída pelo PyPI. As versões anteriores circularam apenas junto do produto, sem publicação em registry.
